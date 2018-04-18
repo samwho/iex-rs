@@ -43,6 +43,10 @@ impl IexClient {
         Ok(self.get(&format!("/stock/{}/earnings", symbol))?)
     }
 
+    pub fn effective_spread(&self, symbol: &str) -> Result<Vec<EffectiveSpread>> {
+        Ok(self.get(&format!("/stock/{}/effective-spread", symbol))?)
+    }
+
     fn get<T>(&self, path: &str) -> Result<T> 
     where
         T: serde::de::DeserializeOwned

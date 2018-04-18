@@ -146,3 +146,14 @@ pub struct Earnings {
   symbol: String,
   earnings: Vec<Earning>,
 }
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct EffectiveSpread {
+  volume: f64,
+  venue: String,
+  venue_name: String,
+  effective_spread: f64,
+  effective_quoted: f64,
+  price_improvement: f64,
+}
