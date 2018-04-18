@@ -125,3 +125,24 @@ pub struct Dividend {
   qualified: String,
   indicated: String,
 }
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Earning {
+  #[serde(rename = "actualEPS")] actual_eps: f64,
+  #[serde(rename = "consensusEPS")] consensus_eps: f64,
+  #[serde(rename = "estimatedEPS")] estimated_eps: f64,
+  announce_time: String,
+  number_of_estimates: f64,
+  #[serde(rename = "EPSSurpriseDollar")] eps_surprise_dollar: f64,
+  #[serde(rename = "EPSReportDate")] eps_report_date: String,
+  fiscal_period: String,
+  fiscal_end_date: String,
+}
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Earnings {
+  symbol: String,
+  earnings: Vec<Earning>,
+}

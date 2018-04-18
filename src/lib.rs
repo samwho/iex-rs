@@ -42,6 +42,10 @@ impl IexClient {
         Ok(self.get(&format!("/stock/{}/dividends/{}", symbol, duration))?)
     }
 
+    pub fn earnings(&self, symbol: &str) -> Result<Earnings> {
+        Ok(self.get(&format!("/stock/{}/earnings", symbol))?)
+    }
+
     fn get<T>(&self, path: &str) -> Result<T> 
     where
         T: serde::de::DeserializeOwned
