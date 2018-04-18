@@ -8,7 +8,6 @@ mod types;
 use std::time::Duration;
 use types::*;
 
-const IEX_BASE_URL: &str = "https://api.iextrading.com/1.0";
 
 pub type Error = Box<std::error::Error>;
 pub type Result<T> = std::result::Result<T, Error>;
@@ -35,12 +34,15 @@ impl IexClient {
         Ok(self.get(&format!("/stock/{}/company", symbol))?)
     }
 
+    pub fn delayed_quote(&self, symbol: &str) -> Result<DelayedQuoteResponse> {
+        Ok(self.get(&format!("/stock/{}/delayed-quote", symbol))?)
+    }
+
     fn get<T>(&self, path: &str) -> Result<T> 
     where
         T: serde::de::DeserializeOwned
     {
-        let uri = format!("{}{}", IEX_BASE_URL, path);
-        let res = self.http.get(&uri).send()?;
-        Ok(serde_json::from_reader(res)?)
+        let uri = format!("{}{}", "https://api.iextrading.com/1.0", path);
+        Ok(serde_json::from_reader(self.http.get(&uri).send()?)?)
     }
 }

@@ -100,4 +100,14 @@ pub struct CompanyResponse {
   sector: String,
 }
 
-
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DelayedQuoteResponse {
+  symbol: String,
+  delayed_price: f64,
+  high: f64,
+  low: f64,
+  delayed_size: f64,
+  delayed_price_time: f64,
+  processed_time: f64,
+}
