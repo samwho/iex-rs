@@ -26,16 +26,20 @@ impl IexClient {
         Ok(IexClient { http })
     }
 
-    pub fn book(&self, symbol: &str) -> Result<BookResponse> {
+    pub fn book(&self, symbol: &str) -> Result<Book> {
         Ok(self.get(&format!("/stock/{}/book", symbol))?)
     }
 
-    pub fn company(&self, symbol: &str) -> Result<CompanyResponse> {
+    pub fn company(&self, symbol: &str) -> Result<Company> {
         Ok(self.get(&format!("/stock/{}/company", symbol))?)
     }
 
-    pub fn delayed_quote(&self, symbol: &str) -> Result<DelayedQuoteResponse> {
+    pub fn delayed_quote(&self, symbol: &str) -> Result<DelayedQuote> {
         Ok(self.get(&format!("/stock/{}/delayed-quote", symbol))?)
+    }
+
+    pub fn dividends(&self, symbol: &str, duration: &str) -> Result<Vec<Dividend>> {
+        Ok(self.get(&format!("/stock/{}/dividends/{}", symbol, duration))?)
     }
 
     fn get<T>(&self, path: &str) -> Result<T> 

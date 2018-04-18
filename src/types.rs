@@ -78,7 +78,7 @@ pub struct SystemEvent {
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
-pub struct BookResponse {
+pub struct Book {
   quote: Quote,
   bids: Vec<Bid>,
   asks: Vec<Ask>,
@@ -88,7 +88,7 @@ pub struct BookResponse {
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CompanyResponse {
+pub struct Company {
   symbol: String,
   company_name: String,
   exchange: String,
@@ -102,7 +102,7 @@ pub struct CompanyResponse {
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
-pub struct DelayedQuoteResponse {
+pub struct DelayedQuote {
   symbol: String,
   delayed_price: f64,
   high: f64,
@@ -110,4 +110,18 @@ pub struct DelayedQuoteResponse {
   delayed_size: f64,
   delayed_price_time: f64,
   processed_time: f64,
+}
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Dividend {
+  ex_date: String,
+  payment_date: String,
+  record_date: String,
+  declared_date: String,
+  amount: f64,
+  flag: String,
+  #[serde(rename = "type")] dtype: String, // because "type" is a keyword
+  qualified: String,
+  indicated: String,
 }

@@ -34,17 +34,40 @@ def parse_object(name, object)
 end
 
 json = JSON.parse(open(ARGV.shift).read)
-parse_object("Main", json)
 
-TYPES.each do |name, definition|
-	puts "#[serde(rename_all = \"camelCase\")]"
-	puts "#[derive(Serialize, Deserialize, Debug)]"
-	puts "pub struct " + name + " {"
+if json.is_a? Array
+	parse_object("Inner", json.shift)
+	TYPES.each do |name, definition|
+		puts "#[serde(rename_all = \"camelCase\")]"
+		puts "#[derive(Serialize, Deserialize, Debug)]"
+		puts "pub struct " + name + " {"
 
-	definition.each do |field_name, type|
-		puts "  " + field_name + ": " + type + ","
+		definition.each do |field_name, type|
+			puts "  " + field_name + ": " + type + ","
+		end
+
+		puts "}"
+		puts
 	end
 
+	puts "#[serde(rename_all = \"camelCase\")]"
+	puts "#[derive(Serialize, Deserialize, Debug)]"
+	puts "pub struct Outer {"
+	puts "  inners: Vec<Inner>,"
 	puts "}"
-	puts
+else
+	parse_object("Main", json)
+	TYPES.each do |name, definition|
+		puts "#[serde(rename_all = \"camelCase\")]"
+		puts "#[derive(Serialize, Deserialize, Debug)]"
+		puts "pub struct " + name + " {"
+
+		definition.each do |field_name, type|
+			puts "  " + field_name + ": " + type + ","
+		end
+
+		puts "}"
+		puts
+	end
 end
+
