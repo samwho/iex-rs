@@ -1,159 +1,159 @@
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Quote {
-  symbol: String,
-  company_name: String,
-  primary_exchange: String,
-  sector: String,
-  calculation_price: String,
-  open: f64,
-  open_time: f64,
-  close: f64,
-  close_time: f64,
-  high: f64,
-  low: f64,
-  latest_price: f64,
-  latest_source: String,
-  latest_time: String,
-  latest_update: f64,
-  latest_volume: f64,
-  iex_realtime_price: f64,
-  iex_realtime_size: f64,
-  iex_last_updated: f64,
-  delayed_price: f64,
-  delayed_price_time: f64,
-  previous_close: f64,
-  change: f64,
-  change_percent: f64,
-  iex_market_percent: f64,
-  iex_volume: f64,
-  avg_total_volume: f64,
-  iex_bid_price: f64,
-  iex_bid_size: f64,
-  iex_ask_price: f64,
-  iex_ask_size: f64,
-  market_cap: f64,
-  pe_ratio: f64,
-  week52_high: f64,
-  week52_low: f64,
-  ytd_change: f64,
+  pub symbol: String,
+  pub company_name: String,
+  pub primary_exchange: String,
+  pub sector: String,
+  pub calculation_price: String,
+  pub open: f64,
+  pub open_time: f64,
+  pub close: f64,
+  pub close_time: f64,
+  pub high: f64,
+  pub low: f64,
+  pub latest_price: f64,
+  pub latest_source: String,
+  pub latest_time: String,
+  pub latest_update: f64,
+  pub latest_volume: f64,
+  pub iex_realtime_price: f64,
+  pub iex_realtime_size: f64,
+  pub iex_last_updated: f64,
+  pub delayed_price: f64,
+  pub delayed_price_time: f64,
+  pub previous_close: f64,
+  pub change: f64,
+  pub change_percent: f64,
+  pub iex_market_percent: f64,
+  pub iex_volume: f64,
+  pub avg_total_volume: f64,
+  pub iex_bid_price: f64,
+  pub iex_bid_size: f64,
+  pub iex_ask_price: f64,
+  pub iex_ask_size: f64,
+  pub market_cap: f64,
+  pub pe_ratio: f64,
+  pub week52_high: f64,
+  pub week52_low: f64,
+  pub ytd_change: f64,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Bid {
-  price: f64,
-  size: f64,
-  timestamp: f64,
+  pub price: f64,
+  pub size: f64,
+  pub timestamp: f64,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Ask {
-  price: f64,
-  size: f64,
-  timestamp: f64,
+  pub price: f64,
+  pub size: f64,
+  pub timestamp: f64,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Trade {
-  price: f64,
-  size: f64,
-  trade_id: f64,
-  #[serde(rename = "isISO")] is_iso: bool,
-  is_odd_lot: bool,
-  is_outside_regular_hours: bool,
-  is_single_price_cross: bool,
-  is_trade_through_exempt: bool,
-  timestamp: f64,
+  pub price: f64,
+  pub size: f64,
+  pub trade_id: f64,
+  #[serde(rename = "isISO")] pub is_iso: bool,
+  pub is_odd_lot: bool,
+  pub is_outside_regular_hours: bool,
+  pub is_single_price_cross: bool,
+  pub is_trade_through_exempt: bool,
+  pub timestamp: f64,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SystemEvent {
-  system_event: String,
-  timestamp: f64,
+  pub system_event: String,
+  pub timestamp: f64,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Book {
-  quote: Quote,
-  bids: Vec<Bid>,
-  asks: Vec<Ask>,
-  trades: Vec<Trade>,
-  system_event: SystemEvent,
+  pub quote: Quote,
+  pub bids: Vec<Bid>,
+  pub asks: Vec<Ask>,
+  pub trades: Vec<Trade>,
+  pub system_event: SystemEvent,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Company {
-  symbol: String,
-  company_name: String,
-  exchange: String,
-  industry: String,
-  website: String,
-  description: String,
-  #[serde(rename = "CEO")] ceo: String,
-  issue_type: String,
-  sector: String,
+  pub symbol: String,
+  pub company_name: String,
+  pub exchange: String,
+  pub industry: String,
+  pub website: String,
+  pub description: String,
+  #[serde(rename = "CEO")] pub ceo: String,
+  pub issue_type: String,
+  pub sector: String,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DelayedQuote {
-  symbol: String,
-  delayed_price: f64,
-  high: f64,
-  low: f64,
-  delayed_size: f64,
-  delayed_price_time: f64,
-  processed_time: f64,
+  pub symbol: String,
+  pub delayed_price: f64,
+  pub high: f64,
+  pub low: f64,
+  pub delayed_size: f64,
+  pub delayed_price_time: f64,
+  pub processed_time: f64,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Dividend {
-  ex_date: String,
-  payment_date: String,
-  record_date: String,
-  declared_date: String,
-  amount: f64,
-  flag: String,
-  #[serde(rename = "type")] dtype: String, // because "type" is a keyword
-  qualified: String,
-  indicated: String,
+  pub ex_date: String,
+  pub payment_date: String,
+  pub record_date: String,
+  pub declared_date: String,
+  pub amount: f64,
+  pub flag: String,
+  #[serde(rename = "type")] pub dtype: String, // because "type" is a keyword
+  pub qualified: String,
+  pub indicated: String,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Earning {
-  #[serde(rename = "actualEPS")] actual_eps: f64,
-  #[serde(rename = "consensusEPS")] consensus_eps: f64,
-  #[serde(rename = "estimatedEPS")] estimated_eps: f64,
-  announce_time: String,
-  number_of_estimates: f64,
-  #[serde(rename = "EPSSurpriseDollar")] eps_surprise_dollar: f64,
-  #[serde(rename = "EPSReportDate")] eps_report_date: String,
-  fiscal_period: String,
-  fiscal_end_date: String,
+  #[serde(rename = "actualEPS")] pub actual_eps: f64,
+  #[serde(rename = "consensusEPS")] pub consensus_eps: f64,
+  #[serde(rename = "estimatedEPS")] pub estimated_eps: f64,
+  pub announce_time: String,
+  pub number_of_estimates: f64,
+  #[serde(rename = "EPSSurpriseDollar")] pub eps_surprise_dollar: f64,
+  #[serde(rename = "EPSReportDate")] pub eps_report_date: String,
+  pub fiscal_period: String,
+  pub fiscal_end_date: String,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Earnings {
-  symbol: String,
-  earnings: Vec<Earning>,
+  pub symbol: String,
+  pub earnings: Vec<Earning>,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EffectiveSpread {
-  volume: f64,
-  venue: String,
-  venue_name: String,
-  effective_spread: f64,
-  effective_quoted: f64,
-  price_improvement: f64,
+  pub volume: f64,
+  pub venue: String,
+  pub venue_name: String,
+  pub effective_spread: f64,
+  pub effective_quoted: f64,
+  pub price_improvement: f64,
 }

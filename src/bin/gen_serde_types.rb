@@ -36,34 +36,28 @@ end
 json = JSON.parse(open(ARGV.shift).read)
 
 if json.is_a? Array
-	parse_object("Inner", json.shift)
+	parse_object("ArrayInnerObjectRenameMe", json.shift)
 	TYPES.each do |name, definition|
 		puts "#[serde(rename_all = \"camelCase\")]"
 		puts "#[derive(Serialize, Deserialize, Debug)]"
 		puts "pub struct " + name + " {"
 
 		definition.each do |field_name, type|
-			puts "  " + field_name + ": " + type + ","
+			puts "  pub " + field_name + ": " + type + ","
 		end
 
 		puts "}"
 		puts
 	end
-
-	puts "#[serde(rename_all = \"camelCase\")]"
-	puts "#[derive(Serialize, Deserialize, Debug)]"
-	puts "pub struct Outer {"
-	puts "  inners: Vec<Inner>,"
-	puts "}"
 else
-	parse_object("Main", json)
+	parse_object("NewTypeRenameMe", json)
 	TYPES.each do |name, definition|
 		puts "#[serde(rename_all = \"camelCase\")]"
 		puts "#[derive(Serialize, Deserialize, Debug)]"
 		puts "pub struct " + name + " {"
 
 		definition.each do |field_name, type|
-			puts "  " + field_name + ": " + type + ","
+			puts "  pub " + field_name + ": " + type + ","
 		end
 
 		puts "}"
