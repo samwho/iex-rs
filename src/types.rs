@@ -157,3 +157,34 @@ pub struct EffectiveSpread {
   pub effective_quoted: f64,
   pub price_improvement: f64,
 }
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Financial {
+  pub report_date: String,
+  pub gross_profit: f64,
+  pub cost_of_revenue: f64,
+  pub operating_revenue: f64,
+  pub total_revenue: f64,
+  pub operating_income: f64,
+  pub net_income: f64,
+  pub research_and_development: f64,
+  pub operating_expense: f64,
+  pub current_assets: f64,
+  pub total_assets: f64,
+  pub total_liabilities: f64,
+  pub current_cash: f64,
+  pub current_debt: f64,
+  pub total_cash: f64,
+  pub total_debt: f64,
+  pub shareholder_equity: f64,
+  pub cash_change: f64,
+  pub cash_flow: f64,
+}
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Financials {
+  pub symbol: String,
+  pub financials: Vec<Financial>,
+}
