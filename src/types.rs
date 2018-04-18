@@ -86,3 +86,18 @@ pub struct BookResponse {
   system_event: SystemEvent,
 }
 
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CompanyResponse {
+  symbol: String,
+  company_name: String,
+  exchange: String,
+  industry: String,
+  website: String,
+  description: String,
+  #[serde(rename = "CEO")] ceo: String,
+  issue_type: String,
+  sector: String,
+}
+
+

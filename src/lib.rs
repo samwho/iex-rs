@@ -28,8 +28,11 @@ impl IexClient {
     }
 
     pub fn book(&self, symbol: &str) -> Result<BookResponse> {
-        let path = format!("/stock/{}/book", symbol);
-        Ok(self.get(&path)?)
+        Ok(self.get(&format!("/stock/{}/book", symbol))?)
+    }
+
+    pub fn company(&self, symbol: &str) -> Result<CompanyResponse> {
+        Ok(self.get(&format!("/stock/{}/company", symbol))?)
     }
 
     fn get<T>(&self, path: &str) -> Result<T> 
