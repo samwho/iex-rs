@@ -2,15 +2,12 @@
 extern crate serde;
 extern crate serde_json;
 extern crate reqwest;
+extern crate failure;
 
 mod types;
-
-use std::time::Duration;
 use types::*;
 
-
-pub type Error = Box<std::error::Error>;
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, failure::Error>;
 
 pub struct IexClient {
     http: reqwest::Client,
@@ -20,7 +17,7 @@ impl IexClient {
     pub fn new() -> Result<Self> {
         let http = reqwest::Client::builder()
             .gzip(true)
-            .timeout(Duration::from_secs(10))
+            .timeout(std::time::Duration::from_secs(10))
             .build()?;
 
         Ok(IexClient { http })
