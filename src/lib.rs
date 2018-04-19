@@ -60,6 +60,10 @@ impl IexClient {
         self.get(&format!("/stock/{}/short-interest/{}", symbol.unwrap_or("market"), date.unwrap_or("")))
     }
 
+    pub fn stats(&self, symbol: &str) -> Result<Stats> {
+        self.get(&format!("/stock/{}/stats", symbol))
+    }
+
     fn get<T>(&self, path: &str) -> Result<T> 
     where
         T: serde::de::DeserializeOwned
