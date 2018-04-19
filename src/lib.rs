@@ -90,6 +90,11 @@ impl IexClient {
         self.get(&format!("/stock/{}/logo", symbol))
     }
 
+    pub fn news(&self, symbol: &str) -> Result<Vec<News>> {
+        // TODO: this also takes a count argument, implement it.
+        self.get(&format!("/stock/{}/news", symbol))
+    }
+
     fn get<T>(&self, path: &str) -> Result<T>
     where
         T: serde::de::DeserializeOwned,
@@ -172,6 +177,12 @@ mod tests {
     fn logo() {
         let iex = ::IexClient::new().unwrap();
         assert!(iex.logo("aapl").is_ok());
+    }
+
+    #[test]
+    fn news() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.news("aapl").is_ok());
     }
 }
 

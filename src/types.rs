@@ -300,3 +300,14 @@ pub struct Stats {
 pub struct Logo {
     pub url: String,
 }
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct News {
+  pub datetime: String,
+  pub headline: String,
+  pub source: String,
+  pub url: String,
+  pub summary: String,
+  pub related: String,
+}
