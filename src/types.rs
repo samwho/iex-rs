@@ -343,3 +343,22 @@ pub struct Previous {
   pub change_percent: f64,
   pub vwap: f64,
 }
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Relevant {
+    pub peers: bool,
+    pub symbols: Vec<String>,
+}
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Split {
+  pub ex_date: String,
+  pub declared_date: String,
+  pub record_date: String,
+  pub payment_date: String,
+  pub ratio: f64,
+  pub to_factor: f64,
+  pub for_factor: f64,
+}

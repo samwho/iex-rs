@@ -118,6 +118,14 @@ impl IexClient {
         self.get(&format!("/stock/{}/quote", symbol))
     }
 
+    pub fn relevant(&self, symbol: &str) -> Result<Relevant> {
+        self.get(&format!("/stock/{}/relevant", symbol))
+    }
+
+    pub fn splits(&self, symbol: &str, duration: Option<&str>) -> Result<Vec<Split>> {
+        self.get(&format!("/stock/{}/splits/{}", symbol, duration.unwrap_or("")))
+    }
+
     fn get<T>(&self, path: &str) -> Result<T>
     where
         T: serde::de::DeserializeOwned,
@@ -236,6 +244,18 @@ mod tests {
     fn quote() {
         let iex = ::IexClient::new().unwrap();
         assert!(iex.quote("aapl").is_ok());
+    }
+
+    #[test]
+    fn relevant() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.relevant("aapl").is_ok());
+    }
+
+    #[test]
+    fn splits() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.splits("aapl", None).is_ok());
     }
 }
 
