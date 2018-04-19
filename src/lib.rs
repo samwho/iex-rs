@@ -138,6 +138,10 @@ impl IexClient {
         ))
     }
 
+    pub fn time_series(&self, symbol: &str, duration: Option<&str>) -> Result<Vec<ChartDataPoint>> {
+        self.chart(symbol, duration)
+    }
+
     fn get<T>(&self, path: &str) -> Result<T>
     where
         T: serde::de::DeserializeOwned,
@@ -277,5 +281,11 @@ mod tests {
     fn splits() {
         let iex = ::IexClient::new().unwrap();
         assert!(iex.splits("aapl", None).is_ok());
+    }
+
+    #[test]
+    fn time_series() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.time_series("aapl", None).is_ok());
     }
 }
