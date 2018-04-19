@@ -304,44 +304,44 @@ pub struct Logo {
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct News {
-  pub datetime: String,
-  pub headline: String,
-  pub source: String,
-  pub url: String,
-  pub summary: String,
-  pub related: String,
+    pub datetime: String,
+    pub headline: String,
+    pub source: String,
+    pub url: String,
+    pub summary: String,
+    pub related: String,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Price {
-  pub price: f64,
-  pub time: f64,
+    pub price: f64,
+    pub time: f64,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OHLC {
-  pub open: Price,
-  pub close: Price,
-  pub high: f64,
-  pub low: f64,
+    pub open: Price,
+    pub close: Price,
+    pub high: f64,
+    pub low: f64,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Previous {
-  pub symbol: String,
-  pub date: String,
-  pub open: f64,
-  pub high: f64,
-  pub low: f64,
-  pub close: f64,
-  pub volume: f64,
-  pub unadjusted_volume: f64,
-  pub change: f64,
-  pub change_percent: f64,
-  pub vwap: f64,
+    pub symbol: String,
+    pub date: String,
+    pub open: f64,
+    pub high: f64,
+    pub low: f64,
+    pub close: f64,
+    pub volume: f64,
+    pub unadjusted_volume: f64,
+    pub change: f64,
+    pub change_percent: f64,
+    pub vwap: f64,
 }
 
 #[serde(rename_all = "camelCase")]
@@ -354,11 +354,11 @@ pub struct Relevant {
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Split {
-  pub ex_date: String,
-  pub declared_date: String,
-  pub record_date: String,
-  pub payment_date: String,
-  pub ratio: f64,
-  pub to_factor: f64,
-  pub for_factor: f64,
+    pub ex_date: String,
+    pub declared_date: String,
+    pub record_date: String,
+    pub payment_date: String,
+    pub ratio: f64,
+    pub to_factor: f64,
+    pub for_factor: f64,
 }

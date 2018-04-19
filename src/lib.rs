@@ -123,7 +123,11 @@ impl IexClient {
     }
 
     pub fn splits(&self, symbol: &str, duration: Option<&str>) -> Result<Vec<Split>> {
-        self.get(&format!("/stock/{}/splits/{}", symbol, duration.unwrap_or("")))
+        self.get(&format!(
+            "/stock/{}/splits/{}",
+            symbol,
+            duration.unwrap_or("")
+        ))
     }
 
     fn get<T>(&self, path: &str) -> Result<T>
@@ -183,7 +187,10 @@ mod tests {
     #[test]
     fn iex_regulation_sho_threshold_securities_list() {
         let iex = ::IexClient::new().unwrap();
-        assert!(iex.iex_regulation_sho_threshold_securities_list(Some("sample")).is_ok());
+        assert!(
+            iex.iex_regulation_sho_threshold_securities_list(Some("sample"))
+                .is_ok()
+        );
     }
 
     #[test]
@@ -258,4 +265,3 @@ mod tests {
         assert!(iex.splits("aapl", None).is_ok());
     }
 }
-
