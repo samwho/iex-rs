@@ -142,6 +142,10 @@ impl IexClient {
         self.chart(symbol, duration)
     }
 
+    pub fn volume_by_venue(&self, symbol: &str) -> Result<Vec<VolumeByVenue>> {
+        self.get(&format!("/stock/{}/volume-by-venue", symbol))
+    }
+
     fn get<T>(&self, path: &str) -> Result<T>
     where
         T: serde::de::DeserializeOwned,
@@ -287,5 +291,11 @@ mod tests {
     fn time_series() {
         let iex = ::IexClient::new().unwrap();
         assert!(iex.time_series("aapl", None).is_ok());
+    }
+
+    #[test]
+    fn volume_by_venue() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.volume_by_venue("aapl").is_ok());
     }
 }

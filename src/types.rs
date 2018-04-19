@@ -379,3 +379,13 @@ pub struct ChartDataPoint {
     pub label: String,
     pub change_over_time: f64,
 }
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct VolumeByVenue {
+    pub volume: f64,
+    pub venue: String,
+    pub venue_name: String,
+    pub market_percent: f64,
+    pub avg_market_percent: f64,
+}
