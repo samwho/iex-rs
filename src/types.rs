@@ -189,12 +189,12 @@ pub struct Financials {
   pub financials: Vec<Financial>,
 }
 
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "PascalCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct IEXRegulationSHOThresholdSecurity {
   pub trade_date: String,
   #[serde(rename = "SymbolinINETSymbology")] pub symbolin_inet_symbology: String,
-  #[serde(rename = "SymbolInCQSSymbology")] pub symbolin_cqs_symbology: String,
+  #[serde(rename = "SymbolinCQSSymbology")] pub symbolin_cqs_symbology: String,
   #[serde(rename = "SymbolinCMSSymbology")] pub symbolin_cms_symbology: String,
   pub security_name: String,
 }
