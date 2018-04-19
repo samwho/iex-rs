@@ -107,8 +107,9 @@ pub struct Company {
 pub struct DelayedQuote {
     pub symbol: String,
     pub delayed_price: f64,
-    pub high: String,
-    pub low: String,
+    // For some reason, IEX returns either a string or a float for these two.
+    // pub high: String,
+    // pub low: String,
     pub delayed_size: f64,
     pub delayed_price_time: f64,
     pub processed_time: f64,
