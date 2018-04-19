@@ -107,8 +107,8 @@ pub struct Company {
 pub struct DelayedQuote {
     pub symbol: String,
     pub delayed_price: f64,
-    pub high: f64,
-    pub low: f64,
+    pub high: String,
+    pub low: String,
     pub delayed_size: f64,
     pub delayed_price_time: f64,
     pub processed_time: f64,

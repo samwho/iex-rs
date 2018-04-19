@@ -95,3 +95,73 @@ impl IexClient {
         Ok(serde_json::from_reader(res)?)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn book() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.book("aapl").is_ok());
+    }
+
+    #[test]
+    fn company() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.company("aapl").is_ok());
+    }
+
+    #[test]
+    fn delayed_quote() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.delayed_quote("aapl").is_ok());
+    }
+
+    #[test]
+    fn dividends() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.dividends("aapl", "5y").is_ok());
+    }
+
+    #[test]
+    fn earnings() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.earnings("aapl").is_ok());
+    }
+
+    #[test]
+    fn effective_spread() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.effective_spread("aapl").is_ok());
+    }
+
+    #[test]
+    fn financials() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.financials("aapl").is_ok());
+    }
+
+    #[test]
+    fn iex_regulation_sho_threshold_securities_list() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.iex_regulation_sho_threshold_securities_list(Some("sample")).is_ok());
+    }
+
+    #[test]
+    fn iex_short_interest_list() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.iex_short_interest_list(None, None).is_ok());
+    }
+
+    #[test]
+    fn stats() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.stats("aapl").is_ok());
+    }
+
+    #[test]
+    fn list() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.list("gainers").is_ok());
+    }
+}
+
