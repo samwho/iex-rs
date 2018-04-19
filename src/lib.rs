@@ -110,6 +110,14 @@ impl IexClient {
         self.get(&format!("/stock/{}/previous", symbol))
     }
 
+    pub fn price(&self, symbol: &str) -> Result<f64> {
+        self.get(&format!("/stock/{}/price", symbol))
+    }
+
+    pub fn quote(&self, symbol: &str) -> Result<Quote> {
+        self.get(&format!("/stock/{}/quote", symbol))
+    }
+
     fn get<T>(&self, path: &str) -> Result<T>
     where
         T: serde::de::DeserializeOwned,
@@ -216,6 +224,18 @@ mod tests {
     fn previous() {
         let iex = ::IexClient::new().unwrap();
         assert!(iex.previous("aapl").is_ok());
+    }
+
+    #[test]
+    fn price() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.price("aapl").is_ok());
+    }
+
+    #[test]
+    fn quote() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.quote("aapl").is_ok());
     }
 }
 

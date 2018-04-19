@@ -3,5 +3,5 @@ use iex::*;
 
 fn main() {
     let iex = IexClient::new().unwrap();
-    println!("{:?}", iex.logo("aapl").unwrap());
+    println!("{:?}", iex.price("aapl").unwrap());
 }
