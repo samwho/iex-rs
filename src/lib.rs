@@ -56,6 +56,10 @@ impl IexClient {
         self.get(&format!("/stock/market/threshold-securities/{}", date.unwrap_or("")))
     }
 
+    pub fn iex_short_interest_list(&self, symbol: Option<&str>, date: Option<&str>) -> Result<Vec<IEXShortInterest>> {
+        self.get(&format!("/stock/{}/short-interest/{}", symbol.unwrap_or("market"), date.unwrap_or("")))
+    }
+
     fn get<T>(&self, path: &str) -> Result<T> 
     where
         T: serde::de::DeserializeOwned

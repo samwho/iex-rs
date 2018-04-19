@@ -199,4 +199,21 @@ pub struct IEXRegulationSHOThresholdSecurity {
   pub security_name: String,
 }
 
-
+#[serde(rename_all = "PascalCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct IEXShortInterest {
+  pub settlement_date: String,
+  #[serde(rename = "SymbolinINETSymbology")] pub symbolin_inet_symbology: String,
+  #[serde(rename = "SymbolinCQSSymbology")] pub symbolin_cqs_symbology: String,
+  #[serde(rename = "SymbolinCMSSymbology")] pub symbolin_cms_symbology: String,
+  pub security_name: String,
+  pub company_name: String,
+  pub current_short_interest: String,
+  pub previous_short_interest: String,
+  pub percent_change: String,
+  pub average_daily_volume: String,
+  pub daysto_cover: String,
+  pub stock_adjustment_flag: String,
+  pub new_issue_flag: String,
+  pub revision_flag: String,
+}
