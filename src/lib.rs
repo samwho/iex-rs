@@ -1,8 +1,9 @@
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive;
+extern crate failure;
+extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
-extern crate reqwest;
-extern crate failure;
 
 mod types;
 
@@ -19,11 +20,11 @@ pub struct IexClient {
 
 impl IexClient {
     pub fn new() -> Result<Self> {
-        Ok(IexClient { 
+        Ok(IexClient {
             http: reqwest::Client::builder()
-            .gzip(true)
-            .timeout(Duration::from_secs(10))
-            .build()?
+                .gzip(true)
+                .timeout(Duration::from_secs(10))
+                .build()?,
         })
     }
 
@@ -55,12 +56,26 @@ impl IexClient {
         self.get(&format!("/stock/{}/financials", symbol))
     }
 
-    pub fn iex_regulation_sho_threshold_securities_list(&self, date: Option<&str>) -> Result<Vec<IEXRegulationSHOThresholdSecurity>> {
-        self.get(&format!("/stock/market/threshold-securities/{}", date.unwrap_or("")))
+    pub fn iex_regulation_sho_threshold_securities_list(
+        &self,
+        date: Option<&str>,
+    ) -> Result<Vec<IEXRegulationSHOThresholdSecurity>> {
+        self.get(&format!(
+            "/stock/market/threshold-securities/{}",
+            date.unwrap_or("")
+        ))
     }
 
-    pub fn iex_short_interest_list(&self, symbol: Option<&str>, date: Option<&str>) -> Result<Vec<IEXShortInterest>> {
-        self.get(&format!("/stock/{}/short-interest/{}", symbol.unwrap_or("market"), date.unwrap_or("")))
+    pub fn iex_short_interest_list(
+        &self,
+        symbol: Option<&str>,
+        date: Option<&str>,
+    ) -> Result<Vec<IEXShortInterest>> {
+        self.get(&format!(
+            "/stock/{}/short-interest/{}",
+            symbol.unwrap_or("market"),
+            date.unwrap_or("")
+        ))
     }
 
     pub fn stats(&self, symbol: &str) -> Result<Stats> {
@@ -71,9 +86,9 @@ impl IexClient {
         self.get(&format!("/stock/market/list/{}", list))
     }
 
-    fn get<T>(&self, path: &str) -> Result<T> 
+    fn get<T>(&self, path: &str) -> Result<T>
     where
-        T: serde::de::DeserializeOwned
+        T: serde::de::DeserializeOwned,
     {
         let uri = format!("{}{}", "https://api.iextrading.com/1.0", path);
         let res = self.http.get(&uri).send()?.error_for_status()?;
