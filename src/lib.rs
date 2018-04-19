@@ -64,6 +64,10 @@ impl IexClient {
         self.get(&format!("/stock/{}/stats", symbol))
     }
 
+    pub fn list(&self, list: &str) -> Result<Vec<Quote>> {
+        self.get(&format!("/stock/market/list/{}", list))
+    }
+
     fn get<T>(&self, path: &str) -> Result<T> 
     where
         T: serde::de::DeserializeOwned
