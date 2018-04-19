@@ -32,6 +32,14 @@ impl IexClient {
         self.get(&format!("/stock/{}/book", symbol))
     }
 
+    pub fn chart(&self, symbol: &str, duration: Option<&str>) -> Result<Vec<ChartDataPoint>> {
+        self.get(&format!(
+            "/stock/{}/chart/{}",
+            symbol,
+            duration.unwrap_or("")
+        ))
+    }
+
     pub fn company(&self, symbol: &str) -> Result<Company> {
         self.get(&format!("/stock/{}/company", symbol))
     }
@@ -146,6 +154,12 @@ mod tests {
     fn book() {
         let iex = ::IexClient::new().unwrap();
         assert!(iex.book("aapl").is_ok());
+    }
+
+    #[test]
+    fn chart() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.chart("aapl", None).is_ok());
     }
 
     #[test]

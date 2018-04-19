@@ -362,3 +362,20 @@ pub struct Split {
     pub to_factor: f64,
     pub for_factor: f64,
 }
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ChartDataPoint {
+    pub date: String,
+    pub open: f64,
+    pub high: f64,
+    pub low: f64,
+    pub close: f64,
+    pub volume: f64,
+    pub unadjusted_volume: f64,
+    pub change: f64,
+    pub change_percent: f64,
+    pub vwap: f64,
+    pub label: String,
+    pub change_over_time: f64,
+}
