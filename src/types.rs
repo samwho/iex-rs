@@ -389,3 +389,15 @@ pub struct VolumeByVenue {
     pub market_percent: f64,
     pub avg_market_percent: f64,
 }
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Symbol {
+    pub symbol: String,
+    pub name: String,
+    pub date: String,
+    pub is_enabled: bool,
+    #[serde(rename = "type")]
+    pub symbol_type: String,
+    pub iex_id: String,
+}

@@ -146,6 +146,10 @@ impl IexClient {
         self.get(&format!("/stock/{}/volume-by-venue", symbol))
     }
 
+    pub fn symbols(&self) -> Result<Vec<Symbol>> {
+        self.get("/ref-data/symbols")
+    }
+
     fn get<T>(&self, path: &str) -> Result<T>
     where
         T: serde::de::DeserializeOwned,
@@ -297,5 +301,11 @@ mod tests {
     fn volume_by_venue() {
         let iex = ::IexClient::new().unwrap();
         assert!(iex.volume_by_venue("aapl").is_ok());
+    }
+
+    #[test]
+    fn symbols() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.symbols().is_ok());
     }
 }
