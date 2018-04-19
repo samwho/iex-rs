@@ -5,10 +5,13 @@ extern crate reqwest;
 extern crate failure;
 
 mod types;
-use types::*;
-use std::time::Duration;
 
-pub type Result<T> = std::result::Result<T, failure::Error>;
+use failure::Error;
+use std::result;
+use std::time::Duration;
+use types::*;
+
+pub type Result<T> = result::Result<T, Error>;
 
 pub struct IexClient {
     http: reqwest::Client,
@@ -73,6 +76,7 @@ impl IexClient {
         T: serde::de::DeserializeOwned
     {
         let uri = format!("{}{}", "https://api.iextrading.com/1.0", path);
-        Ok(serde_json::from_reader(self.http.get(&uri).send()?)?)
+        let res = self.http.get(&uri).send()?.error_for_status()?;
+        Ok(serde_json::from_reader(res)?)
     }
 }
