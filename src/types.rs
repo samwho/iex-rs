@@ -294,3 +294,9 @@ pub struct Stats {
     pub day5_change_percent: f64,
     pub day30_change_percent: f64,
 }
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Logo {
+    pub url: String,
+}

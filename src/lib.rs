@@ -86,6 +86,10 @@ impl IexClient {
         self.get(&format!("/stock/market/list/{}", list))
     }
 
+    pub fn logo(&self, symbol: &str) -> Result<Logo> {
+        self.get(&format!("/stock/{}/logo", symbol))
+    }
+
     fn get<T>(&self, path: &str) -> Result<T>
     where
         T: serde::de::DeserializeOwned,
@@ -162,6 +166,12 @@ mod tests {
     fn list() {
         let iex = ::IexClient::new().unwrap();
         assert!(iex.list("gainers").is_ok());
+    }
+
+    #[test]
+    fn logo() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.logo("aapl").is_ok());
     }
 }
 
