@@ -103,6 +103,13 @@ impl IexClient {
         self.get(&format!("/stock/{}/peers", symbol))
     }
 
+    pub fn previous(&self, symbol: &str) -> Result<Previous> {
+        // TODO: It's possible to pass in "market" as an argument here
+        // and get one entry for each symbol. We need to handle that
+        // scenario.
+        self.get(&format!("/stock/{}/previous", symbol))
+    }
+
     fn get<T>(&self, path: &str) -> Result<T>
     where
         T: serde::de::DeserializeOwned,
@@ -203,6 +210,12 @@ mod tests {
     fn peers() {
         let iex = ::IexClient::new().unwrap();
         assert!(iex.peers("aapl").is_ok());
+    }
+
+    #[test]
+    fn previous() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.previous("aapl").is_ok());
     }
 }
 

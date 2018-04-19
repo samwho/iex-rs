@@ -327,3 +327,19 @@ pub struct OHLC {
   pub high: f64,
   pub low: f64,
 }
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Previous {
+  pub symbol: String,
+  pub date: String,
+  pub open: f64,
+  pub high: f64,
+  pub low: f64,
+  pub close: f64,
+  pub volume: f64,
+  pub unadjusted_volume: f64,
+  pub change: f64,
+  pub change_percent: f64,
+  pub vwap: f64,
+}
