@@ -52,6 +52,10 @@ impl IexClient {
         self.get(&format!("/stock/{}/financials", symbol))
     }
 
+    pub fn iex_regulation_sho_threshold_securities_list(&self, date: Option<&str>) -> Result<Vec<IEXRegulationSHOThresholdSecurity>> {
+        self.get(&format!("/stock/market/threshold-securities/{}", date.unwrap_or("")))
+    }
+
     fn get<T>(&self, path: &str) -> Result<T> 
     where
         T: serde::de::DeserializeOwned
