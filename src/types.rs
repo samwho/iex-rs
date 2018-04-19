@@ -311,3 +311,19 @@ pub struct News {
   pub summary: String,
   pub related: String,
 }
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Price {
+  pub price: f64,
+  pub time: f64,
+}
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct OHLC {
+  pub open: Price,
+  pub close: Price,
+  pub high: f64,
+  pub low: f64,
+}

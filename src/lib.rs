@@ -95,6 +95,14 @@ impl IexClient {
         self.get(&format!("/stock/{}/news", symbol))
     }
 
+    pub fn ohlc(&self, symbol: &str) -> Result<OHLC> {
+        self.get(&format!("/stock/{}/ohlc", symbol))
+    }
+
+    pub fn peers(&self, symbol: &str) -> Result<Vec<String>> {
+        self.get(&format!("/stock/{}/peers", symbol))
+    }
+
     fn get<T>(&self, path: &str) -> Result<T>
     where
         T: serde::de::DeserializeOwned,
@@ -183,6 +191,18 @@ mod tests {
     fn news() {
         let iex = ::IexClient::new().unwrap();
         assert!(iex.news("aapl").is_ok());
+    }
+
+    #[test]
+    fn ohlc() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.ohlc("aapl").is_ok());
+    }
+
+    #[test]
+    fn peers() {
+        let iex = ::IexClient::new().unwrap();
+        assert!(iex.peers("aapl").is_ok());
     }
 }
 
