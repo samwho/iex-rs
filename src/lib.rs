@@ -6,6 +6,7 @@ extern crate failure;
 
 mod types;
 use types::*;
+use std::time::Duration;
 
 pub type Result<T> = std::result::Result<T, failure::Error>;
 
@@ -15,40 +16,40 @@ pub struct IexClient {
 
 impl IexClient {
     pub fn new() -> Result<Self> {
-        let http = reqwest::Client::builder()
+        Ok(IexClient { 
+            http: reqwest::Client::builder()
             .gzip(true)
-            .timeout(std::time::Duration::from_secs(10))
-            .build()?;
-
-        Ok(IexClient { http })
+            .timeout(Duration::from_secs(10))
+            .build()?
+        })
     }
 
     pub fn book(&self, symbol: &str) -> Result<Book> {
-        Ok(self.get(&format!("/stock/{}/book", symbol))?)
+        self.get(&format!("/stock/{}/book", symbol))
     }
 
     pub fn company(&self, symbol: &str) -> Result<Company> {
-        Ok(self.get(&format!("/stock/{}/company", symbol))?)
+        self.get(&format!("/stock/{}/company", symbol))
     }
 
     pub fn delayed_quote(&self, symbol: &str) -> Result<DelayedQuote> {
-        Ok(self.get(&format!("/stock/{}/delayed-quote", symbol))?)
+        self.get(&format!("/stock/{}/delayed-quote", symbol))
     }
 
     pub fn dividends(&self, symbol: &str, duration: &str) -> Result<Vec<Dividend>> {
-        Ok(self.get(&format!("/stock/{}/dividends/{}", symbol, duration))?)
+        self.get(&format!("/stock/{}/dividends/{}", symbol, duration))
     }
 
     pub fn earnings(&self, symbol: &str) -> Result<Earnings> {
-        Ok(self.get(&format!("/stock/{}/earnings", symbol))?)
+        self.get(&format!("/stock/{}/earnings", symbol))
     }
 
     pub fn effective_spread(&self, symbol: &str) -> Result<Vec<EffectiveSpread>> {
-        Ok(self.get(&format!("/stock/{}/effective-spread", symbol))?)
+        self.get(&format!("/stock/{}/effective-spread", symbol))
     }
 
     pub fn financials(&self, symbol: &str) -> Result<Financials> {
-        Ok(self.get(&format!("/stock/{}/financials", symbol))?)
+        self.get(&format!("/stock/{}/financials", symbol))
     }
 
     fn get<T>(&self, path: &str) -> Result<T> 
