@@ -9,10 +9,45 @@ mod types;
 
 use failure::Error;
 use std::result;
-use std::time::Duration;
+use std::time;
 use types::*;
 
 pub type Result<T> = result::Result<T, Error>;
+
+pub enum Duration {
+    FiveYears,
+    TwoYears,
+    OneYear,
+    YearToDate,
+    SixMonths,
+    ThreeMonths,
+    OneMonth,
+    OneDay,
+    // TODO: Date returns a different JSON structure to the rest of the duration parameters. We'll
+    // need to make a different function to support it.
+    // Date(&'a str),
+    Dynamic,
+}
+
+impl ToString for Duration {
+    fn to_string(&self) -> String {
+        match self {
+            Duration::FiveYears => String::from("5y"),
+            Duration::TwoYears => String::from("2y"),
+            Duration::OneYear => String::from("1y"),
+            Duration::YearToDate => String::from("ytd"),
+            Duration::SixMonths => String::from("6m"),
+            Duration::ThreeMonths => String::from("3m"),
+            Duration::OneMonth => String::from("1m"),
+            Duration::OneDay => String::from("1d"),
+            Duration::Dynamic => String::from("dynamic"),
+        }
+    }
+}
+
+impl Default for Duration {
+    fn default() -> Duration { Duration::OneMonth }
+}
 
 pub struct IexClient {
     http: reqwest::Client,
@@ -23,7 +58,7 @@ impl IexClient {
         Ok(IexClient {
             http: reqwest::Client::builder()
                 .gzip(true)
-                .timeout(Duration::from_secs(10))
+                .timeout(time::Duration::from_secs(10))
                 .build()?,
         })
     }
@@ -32,11 +67,11 @@ impl IexClient {
         self.get(&format!("/stock/{}/book", symbol))
     }
 
-    pub fn chart(&self, symbol: &str, duration: Option<&str>) -> Result<Vec<ChartDataPoint>> {
+    pub fn chart(&self, symbol: &str, duration: Duration) -> Result<Vec<ChartDataPoint>> {
         self.get(&format!(
             "/stock/{}/chart/{}",
             symbol,
-            duration.unwrap_or("")
+            duration.to_string()
         ))
     }
 
@@ -48,8 +83,8 @@ impl IexClient {
         self.get(&format!("/stock/{}/delayed-quote", symbol))
     }
 
-    pub fn dividends(&self, symbol: &str, duration: &str) -> Result<Vec<Dividend>> {
-        self.get(&format!("/stock/{}/dividends/{}", symbol, duration))
+    pub fn dividends(&self, symbol: &str, duration: Duration) -> Result<Vec<Dividend>> {
+        self.get(&format!("/stock/{}/dividends/{}", symbol, duration.to_string()))
     }
 
     pub fn earnings(&self, symbol: &str) -> Result<Earnings> {
@@ -138,7 +173,7 @@ impl IexClient {
         ))
     }
 
-    pub fn time_series(&self, symbol: &str, duration: Option<&str>) -> Result<Vec<ChartDataPoint>> {
+    pub fn time_series(&self, symbol: &str, duration: Duration) -> Result<Vec<ChartDataPoint>> {
         self.chart(symbol, duration)
     }
 
@@ -155,6 +190,7 @@ impl IexClient {
         T: serde::de::DeserializeOwned,
     {
         let uri = format!("{}{}", "https://api.iextrading.com/1.0", path);
+        println!("{}", uri);
         let res = self.http.get(&uri).send()?.error_for_status()?;
         Ok(serde_json::from_reader(res)?)
     }
@@ -171,7 +207,7 @@ mod tests {
     #[test]
     fn chart() {
         let iex = ::IexClient::new().unwrap();
-        assert!(iex.chart("aapl", None).is_ok());
+        assert!(iex.chart("aapl", ::Duration::default()).is_ok());
     }
 
     #[test]
@@ -189,7 +225,7 @@ mod tests {
     #[test]
     fn dividends() {
         let iex = ::IexClient::new().unwrap();
-        assert!(iex.dividends("aapl", "5y").is_ok());
+        assert!(iex.dividends("aapl", ::Duration::default()).is_ok());
     }
 
     #[test]
@@ -294,7 +330,7 @@ mod tests {
     #[test]
     fn time_series() {
         let iex = ::IexClient::new().unwrap();
-        assert!(iex.time_series("aapl", None).is_ok());
+        assert!(iex.time_series("aapl", ::Duration::default()).is_ok());
     }
 
     #[test]
