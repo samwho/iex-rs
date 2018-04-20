@@ -1,4 +1,6 @@
 #[macro_use]
+extern crate derive_builder;
+#[macro_use]
 extern crate serde_derive;
 extern crate failure;
 extern crate reqwest;
@@ -8,6 +10,7 @@ extern crate serde_json;
 mod types;
 
 use failure::Error;
+use std::collections::HashMap;
 use std::result;
 use std::time;
 use types::*;
@@ -46,7 +49,27 @@ impl ToString for Duration {
 }
 
 impl Default for Duration {
-    fn default() -> Duration { Duration::OneMonth }
+    fn default() -> Duration {
+        Duration::OneMonth
+    }
+}
+
+#[derive(Serialize, Debug, Builder)]
+#[builder(setter(into))]
+#[serde(rename_all = "camelCase")]
+pub struct ChartParams {
+    #[builder(default)]
+    pub chart_reset: Option<bool>,
+    #[builder(default)]
+    pub chart_simplify: Option<bool>,
+    #[builder(default)]
+    pub chart_interval: Option<i64>,
+}
+
+impl Default for ChartParams {
+    fn default() -> ChartParams {
+        ChartParamsBuilder::default().build().unwrap()
+    }
 }
 
 pub struct IexClient {
@@ -68,11 +91,17 @@ impl IexClient {
     }
 
     pub fn chart(&self, symbol: &str, duration: Duration) -> Result<Vec<ChartDataPoint>> {
-        self.get(&format!(
-            "/stock/{}/chart/{}",
-            symbol,
-            duration.to_string()
-        ))
+        self.chart_with_params(symbol, duration, ChartParams::default())
+    }
+
+    pub fn chart_with_params(
+        &self,
+        symbol: &str,
+        duration: Duration,
+        params: ChartParams,
+    ) -> Result<Vec<ChartDataPoint>> {
+        let path = format!("/stock/{}/chart/{}", symbol, duration.to_string());
+        self.get_with_params(&path, params)
     }
 
     pub fn company(&self, symbol: &str) -> Result<Company> {
@@ -84,7 +113,11 @@ impl IexClient {
     }
 
     pub fn dividends(&self, symbol: &str, duration: Duration) -> Result<Vec<Dividend>> {
-        self.get(&format!("/stock/{}/dividends/{}", symbol, duration.to_string()))
+        self.get(&format!(
+            "/stock/{}/dividends/{}",
+            symbol,
+            duration.to_string()
+        ))
     }
 
     pub fn earnings(&self, symbol: &str) -> Result<Earnings> {
@@ -165,16 +198,25 @@ impl IexClient {
         self.get(&format!("/stock/{}/relevant", symbol))
     }
 
-    pub fn splits(&self, symbol: &str, duration: Option<&str>) -> Result<Vec<Split>> {
+    pub fn splits(&self, symbol: &str, duration: Duration) -> Result<Vec<Split>> {
         self.get(&format!(
             "/stock/{}/splits/{}",
             symbol,
-            duration.unwrap_or("")
+            duration.to_string()
         ))
     }
 
     pub fn time_series(&self, symbol: &str, duration: Duration) -> Result<Vec<ChartDataPoint>> {
-        self.chart(symbol, duration)
+        self.time_series_with_params(symbol, duration, ChartParams::default())
+    }
+
+    pub fn time_series_with_params(
+        &self,
+        symbol: &str,
+        duration: Duration,
+        params: ChartParams,
+    ) -> Result<Vec<ChartDataPoint>> {
+        self.chart_with_params(symbol, duration, params)
     }
 
     pub fn volume_by_venue(&self, symbol: &str) -> Result<Vec<VolumeByVenue>> {
@@ -185,13 +227,24 @@ impl IexClient {
         self.get("/ref-data/symbols")
     }
 
-    fn get<T>(&self, path: &str) -> Result<T>
+    fn get<R>(&self, path: &str) -> Result<R>
     where
-        T: serde::de::DeserializeOwned,
+        R: serde::de::DeserializeOwned,
+    {
+        self.get_with_params(path, HashMap::<String, String>::default())
+    }
+
+    fn get_with_params<R, P>(&self, path: &str, params: P) -> Result<R>
+    where
+        R: serde::de::DeserializeOwned,
+        P: serde::ser::Serialize,
     {
         let uri = format!("{}{}", "https://api.iextrading.com/1.0", path);
-        println!("{}", uri);
-        let res = self.http.get(&uri).send()?.error_for_status()?;
+        let res = self.http
+            .get(&uri)
+            .query(&params)
+            .send()?
+            .error_for_status()?;
         Ok(serde_json::from_reader(res)?)
     }
 }
@@ -324,7 +377,7 @@ mod tests {
     #[test]
     fn splits() {
         let iex = ::IexClient::new().unwrap();
-        assert!(iex.splits("aapl", None).is_ok());
+        assert!(iex.splits("aapl", ::Duration::default()).is_ok());
     }
 
     #[test]
