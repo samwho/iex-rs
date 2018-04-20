@@ -324,8 +324,8 @@ pub struct Price {
 pub struct OHLC {
     pub open: Price,
     pub close: Price,
-    pub high: f64,
-    pub low: f64,
+    pub high: Option<f64>,
+    pub low: Option<f64>,
 }
 
 #[serde(rename_all = "camelCase")]
