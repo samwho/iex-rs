@@ -7,13 +7,13 @@ extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
 
-mod types;
+use serde_json::Value;
+pub mod types;
 
 use failure::Error;
-use std::collections::HashMap;
 use std::result;
-use std::time;
-use types::*;
+
+const IEX_URL: &'static str = "https://api.iextrading.com/1.0";
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -54,347 +54,296 @@ impl Default for Duration {
     }
 }
 
-#[derive(Serialize, Debug, Builder)]
-#[builder(setter(into))]
-#[serde(rename_all = "camelCase")]
-pub struct ChartParams {
-    #[builder(default)]
-    pub chart_reset: Option<bool>,
-    #[builder(default)]
-    pub chart_simplify: Option<bool>,
-    #[builder(default)]
-    pub chart_interval: Option<i64>,
+/// The `Request` enum type allows for care-free request matching to the IEX API.
+// TODO(Request) - implement chart & duration variants.
+pub enum Request<'a> {
+    Book {
+        symbol: &'a str,
+    },
+    Company {
+        symbol: &'a str,
+    },
+    DelayedQuote {
+        symbol: &'a str,
+    },
+    Earnings {
+        symbol: &'a str,
+    },
+    EffectiveSpread {
+        symbol: &'a str,
+    },
+    Financials {
+        symbol: &'a str,
+    },
+    Stats {
+        symbol: &'a str,
+    },
+    Logo {
+        symbol: &'a str,
+    },
+    News {
+        symbol: &'a str,
+        range: Option<usize>,
+    },
+    Ohlc {
+        symbol: &'a str,
+    },
+    Peers {
+        symbol: &'a str,
+    },
+    Previous {
+        symbol: &'a str,
+    },
+    Price {
+        symbol: &'a str,
+    },
+    Quote {
+        symbol: &'a str,
+    },
+    Relevant {
+        symbol: &'a str,
+    },
+    VolumeByVenue {
+        symbol: &'a str,
+    },
 }
 
-impl Default for ChartParams {
-    fn default() -> ChartParams {
-        ChartParamsBuilder::default().build().unwrap()
+impl<'a> ToString for Request<'a> {
+    fn to_string(&self) -> String {
+        match self {
+            Request::Book { symbol } => format!("stock/{}/book", symbol),
+            Request::Company { symbol } => format!("stock/{}/company", symbol),
+            Request::DelayedQuote { symbol } => format!("stock/{}/delayed-quote", symbol),
+            Request::Earnings { symbol } => format!("stock/{}/earnings", symbol),
+            Request::EffectiveSpread { symbol } => format!("stock/{}/effective-spread", symbol),
+            Request::Financials { symbol } => format!("stock/{}/financials", symbol),
+            Request::Stats { symbol } => format!("stock/{}/stats", symbol),
+            Request::Logo { symbol } => format!("stock/{}/logo", symbol),
+            Request::News { symbol, range } => {
+                format!("stock/{}/news/last/{}", symbol, range.expect(""))
+            }
+            Request::Ohlc { symbol } => format!("stock/{}/ohlc", symbol),
+            Request::Peers { symbol } => format!("stock/{}/peers", symbol),
+            // TODO(Request::Previous) It's possible to pass in "market" as an argument here
+            // and get one entry for each symbol. We need to handle that
+            // scenario.
+            // Comment(Jake) Regarding ^: should be taken care of
+            // due to change in method signature to serve_json::Value. Let me know if otherwise.
+            Request::Previous { symbol } => format!("stock/{}/previous", symbol),
+            Request::Price { symbol } => format!("stock/{}/price", symbol),
+            Request::Quote { symbol } => format!("stock/{}/quote", symbol),
+            Request::Relevant { symbol } => format!("stock/{}/relevant", symbol),
+            Request::VolumeByVenue { symbol } => format!("stock/{}/volume-by-venue", symbol),
+        }
     }
 }
 
-pub struct IexClient {
-    http: reqwest::Client,
-}
+#[derive(Deserialize, Serialize, Debug)]
+pub struct Response(pub Value);
 
-impl IexClient {
-    pub fn new() -> Result<Self> {
-        Ok(IexClient {
-            http: reqwest::Client::builder()
-                .gzip(true)
-                .timeout(time::Duration::from_secs(10))
-                .build()?,
-        })
-    }
-
-    pub fn book(&self, symbol: &str) -> Result<Book> {
-        self.get(&format!("/stock/{}/book", symbol))
-    }
-
-    pub fn chart(&self, symbol: &str, duration: Duration) -> Result<Vec<ChartDataPoint>> {
-        self.chart_with_params(symbol, duration, ChartParams::default())
-    }
-
-    pub fn chart_with_params(
-        &self,
-        symbol: &str,
-        duration: Duration,
-        params: ChartParams,
-    ) -> Result<Vec<ChartDataPoint>> {
-        let path = format!("/stock/{}/chart/{}", symbol, duration.to_string());
-        self.get_with_params(&path, params)
-    }
-
-    pub fn company(&self, symbol: &str) -> Result<Company> {
-        self.get(&format!("/stock/{}/company", symbol))
-    }
-
-    pub fn delayed_quote(&self, symbol: &str) -> Result<DelayedQuote> {
-        self.get(&format!("/stock/{}/delayed-quote", symbol))
-    }
-
-    pub fn dividends(&self, symbol: &str, duration: Duration) -> Result<Vec<Dividend>> {
-        self.get(&format!(
-            "/stock/{}/dividends/{}",
-            symbol,
-            duration.to_string()
-        ))
-    }
-
-    pub fn earnings(&self, symbol: &str) -> Result<Earnings> {
-        self.get(&format!("/stock/{}/earnings", symbol))
-    }
-
-    pub fn effective_spread(&self, symbol: &str) -> Result<Vec<EffectiveSpread>> {
-        self.get(&format!("/stock/{}/effective-spread", symbol))
-    }
-
-    pub fn financials(&self, symbol: &str) -> Result<Financials> {
-        self.get(&format!("/stock/{}/financials", symbol))
-    }
-
-    pub fn iex_regulation_sho_threshold_securities_list(
-        &self,
-        date: Option<&str>,
-    ) -> Result<Vec<IEXRegulationSHOThresholdSecurity>> {
-        self.get(&format!(
-            "/stock/market/threshold-securities/{}",
-            date.unwrap_or("")
-        ))
-    }
-
-    pub fn iex_short_interest_list(
-        &self,
-        symbol: Option<&str>,
-        date: Option<&str>,
-    ) -> Result<Vec<IEXShortInterest>> {
-        self.get(&format!(
-            "/stock/{}/short-interest/{}",
-            symbol.unwrap_or("market"),
-            date.unwrap_or("")
-        ))
-    }
-
-    pub fn stats(&self, symbol: &str) -> Result<Stats> {
-        self.get(&format!("/stock/{}/stats", symbol))
-    }
-
-    pub fn list(&self, list: &str) -> Result<Vec<Quote>> {
-        self.get(&format!("/stock/market/list/{}", list))
-    }
-
-    pub fn logo(&self, symbol: &str) -> Result<Logo> {
-        self.get(&format!("/stock/{}/logo", symbol))
-    }
-
-    pub fn news(&self, symbol: &str) -> Result<Vec<News>> {
-        // TODO: this also takes a count argument, implement it.
-        self.get(&format!("/stock/{}/news", symbol))
-    }
-
-    pub fn ohlc(&self, symbol: &str) -> Result<OHLC> {
-        self.get(&format!("/stock/{}/ohlc", symbol))
-    }
-
-    pub fn peers(&self, symbol: &str) -> Result<Vec<String>> {
-        self.get(&format!("/stock/{}/peers", symbol))
-    }
-
-    pub fn previous(&self, symbol: &str) -> Result<Previous> {
-        // TODO: It's possible to pass in "market" as an argument here
-        // and get one entry for each symbol. We need to handle that
-        // scenario.
-        self.get(&format!("/stock/{}/previous", symbol))
-    }
-
-    pub fn price(&self, symbol: &str) -> Result<f64> {
-        self.get(&format!("/stock/{}/price", symbol))
-    }
-
-    pub fn quote(&self, symbol: &str) -> Result<Quote> {
-        self.get(&format!("/stock/{}/quote", symbol))
-    }
-
-    pub fn relevant(&self, symbol: &str) -> Result<Relevant> {
-        self.get(&format!("/stock/{}/relevant", symbol))
-    }
-
-    pub fn splits(&self, symbol: &str, duration: Duration) -> Result<Vec<Split>> {
-        self.get(&format!(
-            "/stock/{}/splits/{}",
-            symbol,
-            duration.to_string()
-        ))
-    }
-
-    pub fn time_series(&self, symbol: &str, duration: Duration) -> Result<Vec<ChartDataPoint>> {
-        self.time_series_with_params(symbol, duration, ChartParams::default())
-    }
-
-    pub fn time_series_with_params(
-        &self,
-        symbol: &str,
-        duration: Duration,
-        params: ChartParams,
-    ) -> Result<Vec<ChartDataPoint>> {
-        self.chart_with_params(symbol, duration, params)
-    }
-
-    pub fn volume_by_venue(&self, symbol: &str) -> Result<Vec<VolumeByVenue>> {
-        self.get(&format!("/stock/{}/volume-by-venue", symbol))
-    }
-
-    pub fn symbols(&self) -> Result<Vec<Symbol>> {
-        self.get("/ref-data/symbols")
-    }
-
-    fn get<R>(&self, path: &str) -> Result<R>
+impl Response {
+    pub fn try_into<T>(self) -> Result<T>
+    // TEMP(Response): Keep until try_from trait becomes stable rust feature.
     where
-        R: serde::de::DeserializeOwned,
+        T: for<'de> serde::Deserialize<'de>,
     {
-        self.get_with_params(path, HashMap::<String, String>::default())
-    }
-
-    fn get_with_params<R, P>(&self, path: &str, params: P) -> Result<R>
-    where
-        R: serde::de::DeserializeOwned,
-        P: serde::ser::Serialize,
-    {
-        let uri = format!("{}{}", "https://api.iextrading.com/1.0", path);
-        let res = self.http
-            .get(&uri)
-            .query(&params)
-            .send()?
-            .error_for_status()?;
-        Ok(serde_json::from_reader(res)?)
+        Ok(serde_json::from_value(self.0)?)
     }
 }
+
+/// Client acts as a ResponseHandler.
+pub struct Client;
+
+impl Client {
+    pub fn new() -> Self {
+        Client
+    }
+
+    pub fn request(&self, req: &Request) -> Result<Response> {
+        let url = format!(
+            "{base}/{endpoint}",
+            base = IEX_URL,
+            endpoint = req.to_string()
+        );
+        Ok(reqwest::get(&url)?.json()?)
+    }
+}
+
+// #[derive(Serialize, Debug, Builder)]
+// #[builder(setter(into))]
+// #[serde(rename_all = "camelCase")]
+// pub struct ChartParams {
+//     #[builder(default)]
+//     pub chart_reset: Option<bool>,
+//     #[builder(default)]
+//     pub chart_simplify: Option<bool>,
+//     #[builder(default)]
+//     pub chart_interval: Option<i64>,
+// }
+
+// impl Default for ChartParams {
+//     fn default() -> ChartParams {
+//         ChartParamsBuilder::default().build().unwrap()
+//     }
+// }
+
+// fn get_with_params<R, P>(&self, path: &str, params: P) -> Result<R>
+// where
+//     R: serde::de::DeserializeOwned,
+//     P: serde::ser::Serialize,
+// {
+//     let uri = format!("{}{}", "https://api.iextrading.com/1.0", path);
+//     let res = self.http
+//         .get(&uri)
+//         .query(&params)
+//         .send()?
+//         .error_for_status()?;
+//     Ok(serde_json::from_reader(res)?)
+// }
+
+// pub fn chart(&self, symbol: &str, duration: Duration) -> Result<Vec<ChartDataPoint>> {
+//     self.chart_with_params(symbol, duration, ChartParams::default())
+// }
+
+// pub fn chart_with_params(
+//     &self,
+//     symbol: &str,
+//     duration: Duration,
+//     params: ChartParams,
+// ) -> Result<Vec<ChartDataPoint>> {
+//     let path = format!("/stock/{}/chart/{}", symbol, duration.to_string());
+//     self.get_with_params(&path, params)
+// }
+
+// pub fn dividends(&self, symbol: &str, duration: Duration) -> Result<Vec<Dividend>> {
+//     self.get(&format!(
+//         "/stock/{}/dividends/{}",
+//         symbol,
+//         duration.to_string()
+//     ))
+// }
+
+// pub fn financials(&self, symbol: &str) -> Result<Financials> {
+//     self.get(&format!("/stock/{}/financials", symbol))
+// }
+
+// pub fn iex_regulation_sho_threshold_securities_list(
+//     &self,
+//     date: Option<&str>,
+// ) -> Result<Vec<IEXRegulationSHOThresholdSecurity>> {
+//     self.get(&format!(
+//         "/stock/market/threshold-securities/{}",
+//         date.unwrap_or("")
+//     ))
+// }
+
+// pub fn iex_short_interest_list(
+//     &self,
+//     symbol: Option<&str>,
+//     date: Option<&str>,
+// ) -> Result<Vec<IEXShortInterest>> {
+//     self.get(&format!(
+//         "/stock/{}/short-interest/{}",
+//         symbol.unwrap_or("market"),
+//         date.unwrap_or("")
+//     ))
+// }
+
+// pub fn list(&self, list: &str) -> Result<Vec<Quote>> {
+//     self.get(&format!("/stock/market/list/{}", list))
+// }
+
+// pub fn splits(&self, symbol: &str, duration: Duration) -> Result<Vec<Split>> {
+//     self.get(&format!(
+//         "/stock/{}/splits/{}",
+//         symbol,
+//         duration.to_string()
+//     ))
+// }
+
+// pub fn time_series(&self, symbol: &str, duration: Duration) -> Result<Vec<ChartDataPoint>> {
+//     self.time_series_with_params(symbol, duration, ChartParams::default())
+// }
+
+// pub fn time_series_with_params(
+//     &self,
+//     symbol: &str,
+//     duration: Duration,
+//     params: ChartParams,
+// ) -> Result<Vec<ChartDataPoint>> {
+//     self.chart_with_params(symbol, duration, params)
+// }
+
+// pub fn symbols(&self) -> Result<Vec<Symbol>> {
+//     self.get("/ref-data/symbols")
+// }
+// }
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn book() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.book("aapl").is_ok());
-    }
+    use super::*;
 
     #[test]
-    fn chart() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.chart("aapl", ::Duration::default()).is_ok());
+    fn test_client_request() {
+        let client = Client;
+        assert!(client.request(&Request::Book { symbol: "aapl" }).is_ok());
+        // TODO(test_client_request()) implement other Request cases.
     }
 
-    #[test]
-    fn company() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.company("aapl").is_ok());
-    }
+    // #[test]
+    // fn chart() {
+    //     let iex = ::IexClient::new().unwrap();
+    //     assert!(iex.chart("aapl", ::Duration::default()).is_ok());
+    // }
 
-    #[test]
-    fn delayed_quote() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.delayed_quote("aapl").is_ok());
-    }
+    // #[test]
+    // fn dividends() {
+    //     let iex = ::IexClient::new().unwrap();
+    //     assert!(iex.dividends("aapl", ::Duration::default()).is_ok());
+    // }
 
-    #[test]
-    fn dividends() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.dividends("aapl", ::Duration::default()).is_ok());
-    }
+    // #[test]
+    // fn iex_regulation_sho_threshold_securities_list() {
+    //     let iex = ::IexClient::new().unwrap();
+    //     assert!(
+    //         iex.iex_regulation_sho_threshold_securities_list(Some("sample"))
+    //             .is_ok()
+    //     );
+    // }
 
-    #[test]
-    fn earnings() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.earnings("aapl").is_ok());
-    }
+    // #[test]
+    // fn iex_short_interest_list() {
+    //     let iex = ::IexClient::new().unwrap();
+    //     assert!(iex.iex_short_interest_list(None, None).is_ok());
+    // }
 
-    #[test]
-    fn effective_spread() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.effective_spread("aapl").is_ok());
-    }
+    // #[test]
+    // fn list() {
+    //     let iex = ::IexClient::new().unwrap();
+    //     assert!(iex.list("gainers").is_ok());
+    // }
 
-    #[test]
-    fn financials() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.financials("aapl").is_ok());
-    }
+    // #[test]
+    // fn splits() {
+    //     let iex = ::IexClient::new().unwrap();
+    //     assert!(iex.splits("aapl", ::Duration::default()).is_ok());
+    // }
 
-    #[test]
-    fn iex_regulation_sho_threshold_securities_list() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(
-            iex.iex_regulation_sho_threshold_securities_list(Some("sample"))
-                .is_ok()
-        );
-    }
+    // #[test]
+    // fn time_series() {
+    //     let iex = ::IexClient::new().unwrap();
+    //     assert!(iex.time_series("aapl", ::Duration::default()).is_ok());
+    // }
 
-    #[test]
-    fn iex_short_interest_list() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.iex_short_interest_list(None, None).is_ok());
-    }
+    // #[test]
+    // fn volume_by_venue() {
+    //     let iex = ::IexClient::new().unwrap();
+    //     assert!(iex.volume_by_venue("aapl").is_ok());
+    // }
 
-    #[test]
-    fn stats() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.stats("aapl").is_ok());
-    }
-
-    #[test]
-    fn list() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.list("gainers").is_ok());
-    }
-
-    #[test]
-    fn logo() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.logo("aapl").is_ok());
-    }
-
-    #[test]
-    fn news() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.news("aapl").is_ok());
-    }
-
-    #[test]
-    fn ohlc() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.ohlc("aapl").is_ok());
-    }
-
-    #[test]
-    fn peers() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.peers("aapl").is_ok());
-    }
-
-    #[test]
-    fn previous() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.previous("aapl").is_ok());
-    }
-
-    #[test]
-    fn price() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.price("aapl").is_ok());
-    }
-
-    #[test]
-    fn quote() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.quote("aapl").is_ok());
-    }
-
-    #[test]
-    fn relevant() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.relevant("aapl").is_ok());
-    }
-
-    #[test]
-    fn splits() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.splits("aapl", ::Duration::default()).is_ok());
-    }
-
-    #[test]
-    fn time_series() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.time_series("aapl", ::Duration::default()).is_ok());
-    }
-
-    #[test]
-    fn volume_by_venue() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.volume_by_venue("aapl").is_ok());
-    }
-
-    #[test]
-    fn symbols() {
-        let iex = ::IexClient::new().unwrap();
-        assert!(iex.symbols().is_ok());
-    }
+    // #[test]
+    // fn symbols() {
+    //     let iex = ::IexClient::new().unwrap();
+    //     assert!(iex.symbols().is_ok());
+    // }
 }
