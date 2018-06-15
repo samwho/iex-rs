@@ -1,17 +1,11 @@
 extern crate iex;
-use iex::*;
+extern crate serde_json;
+use iex::types::Book;
+use iex::{Client, Request};
 
 fn main() {
-    let iex = IexClient::new().unwrap();
-    println!(
-        "{:?}",
-        iex.chart_with_params(
-            "aapl",
-            Duration::YearToDate,
-            ChartParamsBuilder::default()
-                .chart_simplify(true)
-                .build()
-                .unwrap()
-        ).unwrap()
-    );
+    let client = Client::new();
+    let resp = client.request(&Request::Book { symbol: "aapl" }).unwrap();
+    let book = resp.try_into::<Book>();
+    println!("{:?}", &book);
 }
