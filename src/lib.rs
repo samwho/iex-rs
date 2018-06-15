@@ -1,5 +1,5 @@
-#[macro_use]
-extern crate derive_builder;
+// TODO: implement batch_request()
+
 #[macro_use]
 extern crate serde_derive;
 extern crate failure;
@@ -13,10 +13,12 @@ pub mod types;
 use failure::Error;
 use std::result;
 
-const IEX_URL: &'static str = "https://api.iextrading.com/1.0";
+/// `IEX_URL` is the URL base of IEX API.
+const IEX_URL: &str = "https://api.iextrading.com/1.0";
 
 pub type Result<T> = result::Result<T, Error>;
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Duration {
     FiveYears,
     TwoYears,
@@ -28,7 +30,8 @@ pub enum Duration {
     OneDay,
     // TODO: Date returns a different JSON structure to the rest of the duration parameters. We'll
     // need to make a different function to support it.
-    // Date(&'a str),
+    // REVIEW(Duration::Date): This should suffice - but as of now, no way to validate input format.
+    Date(&'static str),
     Dynamic,
 }
 
@@ -43,6 +46,7 @@ impl ToString for Duration {
             Duration::ThreeMonths => String::from("3m"),
             Duration::OneMonth => String::from("1m"),
             Duration::OneDay => String::from("1d"),
+            Duration::Date(date) => format!("date/{}", date),
             Duration::Dynamic => String::from("dynamic"),
         }
     }
@@ -54,17 +58,29 @@ impl Default for Duration {
     }
 }
 
-/// The `Request` enum type allows for care-free request matching to the IEX API.
-// TODO(Request) - implement chart & duration variants.
+#[derive(PartialEq, Eq)]
+/// The `Request` enum type allows for HTTP request matching to the IEX API.
+// TODO(Request): Add documentation from IEX website.
 pub enum Request<'a> {
     Book {
         symbol: &'a str,
+    },
+    // REVIEW(CHART): Should `time-series` be implemented even though it forwards
+    // towards the same endpoint as `Chart`?
+    Chart {
+        symbol: &'a str,
+        duration: Duration,
+        params: Option<Vec<ChartParam>>,
     },
     Company {
         symbol: &'a str,
     },
     DelayedQuote {
         symbol: &'a str,
+    },
+    Dividends {
+        symbol: &'a str,
+        duration: Duration,
     },
     Earnings {
         symbol: &'a str,
@@ -75,15 +91,16 @@ pub enum Request<'a> {
     Financials {
         symbol: &'a str,
     },
-    Stats {
-        symbol: &'a str,
+    // REVIEW|TODO(List): add in default displayParameters(?)
+    List {
+        param: ListParam,
     },
     Logo {
         symbol: &'a str,
     },
     News {
         symbol: &'a str,
-        range: Option<usize>,
+        range: Option<i32>,
     },
     Ohlc {
         symbol: &'a str,
@@ -103,6 +120,21 @@ pub enum Request<'a> {
     Relevant {
         symbol: &'a str,
     },
+    Splits {
+        symbol: &'a str,
+        duration: Duration,
+    },
+    Stats {
+        symbol: &'a str,
+    },
+    Symbols,
+    /// IEX Regulation SHO Threshold Securities List
+    ThresholdSecurities {
+        // REVIEW: may be a good idea to implement a date struct to use here and
+        // wrap in the Duration::Date enum variant, or eq - a match statement.
+        date: Option<Duration>,
+    },
+    // TODO(ShortInterest): implement variant.
     VolumeByVenue {
         symbol: &'a str,
     },
@@ -112,27 +144,51 @@ impl<'a> ToString for Request<'a> {
     fn to_string(&self) -> String {
         match self {
             Request::Book { symbol } => format!("stock/{}/book", symbol),
+            Request::Chart {
+                symbol,
+                duration,
+                params,
+            } => format!(
+                "stock/{}/chart/{}{}",
+                symbol,
+                duration.to_string(),
+                parse_params(params)
+            ),
             Request::Company { symbol } => format!("stock/{}/company", symbol),
             Request::DelayedQuote { symbol } => format!("stock/{}/delayed-quote", symbol),
+            Request::Dividends { symbol, duration } => {
+                format!("stock/{}/dividends/{}", symbol, duration.to_string())
+            }
             Request::Earnings { symbol } => format!("stock/{}/earnings", symbol),
             Request::EffectiveSpread { symbol } => format!("stock/{}/effective-spread", symbol),
             Request::Financials { symbol } => format!("stock/{}/financials", symbol),
-            Request::Stats { symbol } => format!("stock/{}/stats", symbol),
+            Request::List { param } => format!("stock/market/list/{}", param.to_string()),
             Request::Logo { symbol } => format!("stock/{}/logo", symbol),
-            Request::News { symbol, range } => {
-                format!("stock/{}/news/last/{}", symbol, range.expect(""))
-            }
+            Request::News { symbol, range } => format!(
+                "stock/{}/news/last/{}",
+                symbol,
+                range.map(|r| r.to_string()).unwrap_or("".to_string())
+            ),
             Request::Ohlc { symbol } => format!("stock/{}/ohlc", symbol),
             Request::Peers { symbol } => format!("stock/{}/peers", symbol),
             // TODO(Request::Previous) It's possible to pass in "market" as an argument here
             // and get one entry for each symbol. We need to handle that
             // scenario.
-            // Comment(Jake) Regarding ^: should be taken care of
-            // due to change in method signature to serve_json::Value. Let me know if otherwise.
+            // REVIEW(Request::Previous): Regarding ^: should be taken care of
+            // due to change in Client's request method signature to serve_json::Value. Let me know if otherwise.
             Request::Previous { symbol } => format!("stock/{}/previous", symbol),
             Request::Price { symbol } => format!("stock/{}/price", symbol),
             Request::Quote { symbol } => format!("stock/{}/quote", symbol),
             Request::Relevant { symbol } => format!("stock/{}/relevant", symbol),
+            Request::Stats { symbol } => format!("stock/{}/stats", symbol),
+            Request::Splits { symbol, duration } => {
+                format!("stock/{}/splits/{}", symbol, duration.to_string())
+            }
+            Request::Symbols => String::from("/ref-data/symbols"),
+            Request::ThresholdSecurities { date } => format!(
+                "stock/market/threshold-securities/{}",
+                date.unwrap_or(Duration::Date("")).to_string()
+            ),
             Request::VolumeByVenue { symbol } => format!("stock/{}/volume-by-venue", symbol),
         }
     }
@@ -151,7 +207,8 @@ impl Response {
     }
 }
 
-/// Client acts as a ResponseHandler.
+/// `Client` acts as a Handler for the `Response` enum.
+#[derive(Default)]
 pub struct Client;
 
 impl Client {
@@ -165,185 +222,292 @@ impl Client {
             base = IEX_URL,
             endpoint = req.to_string()
         );
+
         Ok(reqwest::get(&url)?.json()?)
     }
 }
 
-// #[derive(Serialize, Debug, Builder)]
-// #[builder(setter(into))]
-// #[serde(rename_all = "camelCase")]
-// pub struct ChartParams {
-//     #[builder(default)]
-//     pub chart_reset: Option<bool>,
-//     #[builder(default)]
-//     pub chart_simplify: Option<bool>,
-//     #[builder(default)]
-//     pub chart_interval: Option<i64>,
-// }
+#[derive(PartialEq, Eq)]
+pub enum ListParam {
+    MostActive,
+    Gainers,
+    Losers,
+    IexVolume,
+    IexPercent,
+}
 
-// impl Default for ChartParams {
-//     fn default() -> ChartParams {
-//         ChartParamsBuilder::default().build().unwrap()
-//     }
-// }
+impl ListParam {
+    fn to_string(&self) -> String {
+        match self {
+            ListParam::MostActive => String::from("mostactive"),
+            ListParam::Gainers => String::from("gainers"),
+            ListParam::Losers => String::from("losers"),
+            ListParam::IexVolume => String::from("iexvolume"),
+            ListParam::IexPercent => String::from("iexpercent"),
+        }
+    }
+}
 
-// fn get_with_params<R, P>(&self, path: &str, params: P) -> Result<R>
-// where
-//     R: serde::de::DeserializeOwned,
-//     P: serde::ser::Serialize,
-// {
-//     let uri = format!("{}{}", "https://api.iextrading.com/1.0", path);
-//     let res = self.http
-//         .get(&uri)
-//         .query(&params)
-//         .send()?
-//         .error_for_status()?;
-//     Ok(serde_json::from_reader(res)?)
-// }
+#[derive(PartialEq, Eq)]
+pub enum ChartParam {
+    /// boolean. If true, 1d chart will reset at midnight instead of the default behavior of 9:30am ET.
+    Reset(bool),
+    /// boolean. If true, runs a polyline simplification using the Douglas-Peucker algorithm. This is useful if plotting sparkline charts.
+    Simplify(bool),
+    /// number. If passed, chart data will return every Nth element as defined by `Interval`.
+    Interval(usize),
+    /// boolean. If true, changeOverTime and marketChangeOverTime will be relative to previous day close instead of the first value.
+    ChangeFromClose(bool),
+    /// number. If passed, chart data will return the last N elements.
+    Last(usize),
+}
 
-// pub fn chart(&self, symbol: &str, duration: Duration) -> Result<Vec<ChartDataPoint>> {
-//     self.chart_with_params(symbol, duration, ChartParams::default())
-// }
+impl ToString for ChartParam {
+    fn to_string(&self) -> String {
+        match self {
+            ChartParam::Reset(res) => format!("chartReset={}", res),
+            ChartParam::Simplify(res) => format!("chartSimplify={}", res),
+            ChartParam::Interval(res) => format!("chartInterval={}", res),
+            ChartParam::ChangeFromClose(res) => format!("changeFromClose={}", res),
+            ChartParam::Last(res) => format!("chartLast={}", res),
+        }
+    }
+}
 
-// pub fn chart_with_params(
-//     &self,
-//     symbol: &str,
-//     duration: Duration,
-//     params: ChartParams,
-// ) -> Result<Vec<ChartDataPoint>> {
-//     let path = format!("/stock/{}/chart/{}", symbol, duration.to_string());
-//     self.get_with_params(&path, params)
-// }
+/// parse_params is a function to add a query to a base url.
+///
+/// # Examples
+///
+/// ```
+/// use iex::{ChartParam, parse_params};
+///
+/// assert_eq!("?chartReset=true", parse_params(&Some(vec!(ChartParam::Reset(true)))));
+/// ```
+// REVIEW|QUESTION(): Not sure why &Option is required rather than Option.
+pub fn parse_params(params: &Option<Vec<ChartParam>>) -> String {
+    if params.is_none() {
+        return String::from("");
+    }
+    let mut result = String::from("?");
 
-// pub fn dividends(&self, symbol: &str, duration: Duration) -> Result<Vec<Dividend>> {
-//     self.get(&format!(
-//         "/stock/{}/dividends/{}",
-//         symbol,
-//         duration.to_string()
-//     ))
-// }
-
-// pub fn financials(&self, symbol: &str) -> Result<Financials> {
-//     self.get(&format!("/stock/{}/financials", symbol))
-// }
-
-// pub fn iex_regulation_sho_threshold_securities_list(
-//     &self,
-//     date: Option<&str>,
-// ) -> Result<Vec<IEXRegulationSHOThresholdSecurity>> {
-//     self.get(&format!(
-//         "/stock/market/threshold-securities/{}",
-//         date.unwrap_or("")
-//     ))
-// }
-
-// pub fn iex_short_interest_list(
-//     &self,
-//     symbol: Option<&str>,
-//     date: Option<&str>,
-// ) -> Result<Vec<IEXShortInterest>> {
-//     self.get(&format!(
-//         "/stock/{}/short-interest/{}",
-//         symbol.unwrap_or("market"),
-//         date.unwrap_or("")
-//     ))
-// }
-
-// pub fn list(&self, list: &str) -> Result<Vec<Quote>> {
-//     self.get(&format!("/stock/market/list/{}", list))
-// }
-
-// pub fn splits(&self, symbol: &str, duration: Duration) -> Result<Vec<Split>> {
-//     self.get(&format!(
-//         "/stock/{}/splits/{}",
-//         symbol,
-//         duration.to_string()
-//     ))
-// }
-
-// pub fn time_series(&self, symbol: &str, duration: Duration) -> Result<Vec<ChartDataPoint>> {
-//     self.time_series_with_params(symbol, duration, ChartParams::default())
-// }
-
-// pub fn time_series_with_params(
-//     &self,
-//     symbol: &str,
-//     duration: Duration,
-//     params: ChartParams,
-// ) -> Result<Vec<ChartDataPoint>> {
-//     self.chart_with_params(symbol, duration, params)
-// }
-
-// pub fn symbols(&self) -> Result<Vec<Symbol>> {
-//     self.get("/ref-data/symbols")
-// }
-// }
+    for (i, param) in params.as_ref().unwrap().iter().enumerate() {
+        if i != 0 {
+            result += "&";
+        }
+        result += &param.to_string();
+    }
+    result
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    // NOTE(test): Unfortunately rust has no implementation of sub-testing, or at least not aware of as of yet.
     #[test]
-    fn test_client_request() {
+    fn test_client_request_book() {
         let client = Client;
-        assert!(client.request(&Request::Book { symbol: "aapl" }).is_ok());
-        // TODO(test_client_request()) implement other Request cases.
+        let symbol = "aapl";
+
+        assert!(client.request(&Request::Book { symbol }).is_ok());
     }
 
-    // #[test]
-    // fn chart() {
-    //     let iex = ::IexClient::new().unwrap();
-    //     assert!(iex.chart("aapl", ::Duration::default()).is_ok());
-    // }
+    #[test]
+    fn test_client_request_chart() {
+        let client = Client;
+        let symbol = "aapl";
+        let duration = Duration::OneDay;
 
-    // #[test]
-    // fn dividends() {
-    //     let iex = ::IexClient::new().unwrap();
-    //     assert!(iex.dividends("aapl", ::Duration::default()).is_ok());
-    // }
+        assert!(
+            client
+                .request(&Request::Chart {
+                    symbol,
+                    duration,
+                    params: None
+                })
+                .is_ok()
+        );
+    }
 
-    // #[test]
-    // fn iex_regulation_sho_threshold_securities_list() {
-    //     let iex = ::IexClient::new().unwrap();
-    //     assert!(
-    //         iex.iex_regulation_sho_threshold_securities_list(Some("sample"))
-    //             .is_ok()
-    //     );
-    // }
+    #[test]
+    fn test_client_request_company() {
+        let client = Client;
+        let symbol = "aapl";
 
-    // #[test]
-    // fn iex_short_interest_list() {
-    //     let iex = ::IexClient::new().unwrap();
-    //     assert!(iex.iex_short_interest_list(None, None).is_ok());
-    // }
+        assert!(client.request(&Request::Company { symbol }).is_ok());
+    }
 
-    // #[test]
-    // fn list() {
-    //     let iex = ::IexClient::new().unwrap();
-    //     assert!(iex.list("gainers").is_ok());
-    // }
+    #[test]
+    fn test_client_request_delayed_quote() {
+        let client = Client;
+        let symbol = "aapl";
 
-    // #[test]
-    // fn splits() {
-    //     let iex = ::IexClient::new().unwrap();
-    //     assert!(iex.splits("aapl", ::Duration::default()).is_ok());
-    // }
+        assert!(client.request(&Request::DelayedQuote { symbol }).is_ok());
+    }
 
-    // #[test]
-    // fn time_series() {
-    //     let iex = ::IexClient::new().unwrap();
-    //     assert!(iex.time_series("aapl", ::Duration::default()).is_ok());
-    // }
+    #[test]
+    fn test_client_request_dividends() {
+        let client = Client;
+        let symbol = "aapl";
+        let duration = Duration::OneDay;
+        assert!(
+            client
+                .request(&Request::Dividends { symbol, duration })
+                .is_ok()
+        );
+    }
 
-    // #[test]
-    // fn volume_by_venue() {
-    //     let iex = ::IexClient::new().unwrap();
-    //     assert!(iex.volume_by_venue("aapl").is_ok());
-    // }
+    #[test]
+    fn test_client_request_earnings() {
+        let client = Client;
+        let symbol = "aapl";
 
-    // #[test]
-    // fn symbols() {
-    //     let iex = ::IexClient::new().unwrap();
-    //     assert!(iex.symbols().is_ok());
-    // }
+        assert!(client.request(&Request::Earnings { symbol }).is_ok());
+    }
+
+    #[test]
+    fn test_client_request_effective_spread() {
+        let client = Client;
+        let symbol = "aapl";
+
+        assert!(client.request(&Request::EffectiveSpread { symbol }).is_ok());
+    }
+
+    #[test]
+    fn test_client_request_financials() {
+        let client = Client;
+        let symbol = "aapl";
+
+        assert!(client.request(&Request::Financials { symbol }).is_ok());
+    }
+
+    #[test]
+    fn test_client_request_list() {
+        let client = Client;
+
+        assert!(
+            client
+                .request(&Request::List {
+                    param: ListParam::Gainers
+                })
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn test_client_request_logo() {
+        let client = Client;
+        let symbol = "aapl";
+
+        assert!(client.request(&Request::Logo { symbol }).is_ok());
+    }
+
+    #[test]
+    fn test_client_request_news() {
+        let client = Client;
+        let symbol = "aapl";
+        assert!(
+            client
+                .request(&Request::News {
+                    symbol,
+                    range: None
+                })
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn test_client_request_ohlc() {
+        let client = Client;
+        let symbol = "aapl";
+
+        assert!(client.request(&Request::Ohlc { symbol }).is_ok());
+    }
+
+    #[test]
+    fn test_client_request_peers() {
+        let client = Client;
+        let symbol = "aapl";
+
+        assert!(client.request(&Request::Peers { symbol }).is_ok());
+    }
+
+    #[test]
+    fn test_client_request_previous() {
+        let client = Client;
+        let symbol = "aapl";
+
+        assert!(client.request(&Request::Previous { symbol }).is_ok());
+    }
+
+    #[test]
+    fn test_client_request_price() {
+        let client = Client;
+        let symbol = "aapl";
+
+        assert!(client.request(&Request::Price { symbol }).is_ok());
+    }
+
+    #[test]
+    fn test_client_request_quote() {
+        let client = Client;
+        let symbol = "aapl";
+
+        assert!(client.request(&Request::Quote { symbol }).is_ok());
+    }
+
+    #[test]
+    fn test_client_request_relevant() {
+        let client = Client;
+        let symbol = "aapl";
+
+        assert!(client.request(&Request::Relevant { symbol }).is_ok());
+    }
+
+    #[test]
+    fn test_client_request_splits() {
+        let client = Client;
+        let symbol = "aapl";
+        let duration = Duration::OneDay;
+
+        assert!(
+            client
+                .request(&Request::Splits { symbol, duration })
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn test_client_request_stats() {
+        let client = Client;
+        let symbol = "aapl";
+
+        assert!(client.request(&Request::Stats { symbol }).is_ok());
+    }
+
+    #[test]
+    fn test_client_request_symbols() {
+        let client = Client;
+
+        assert!(client.request(&Request::Symbols).is_ok());
+    }
+
+    #[test]
+    fn test_client_request_threshold_securiteis() {
+        let client = Client;
+
+        assert!(
+            client
+                .request(&Request::ThresholdSecurities { date: None })
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn test_client_request_volume_by_venue() {
+        let client = Client;
+        let symbol = "aapl";
+
+        assert!(client.request(&Request::VolumeByVenue { symbol }).is_ok());
+    }
 }
