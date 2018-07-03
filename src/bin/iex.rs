@@ -1,17 +1,11 @@
 extern crate iex;
-use iex::*;
+extern crate serde_json;
+use iex::Book;
+use iex::{Client, StocksEndpoint};
 
 fn main() {
-    let iex = IexClient::new().unwrap();
-    println!(
-        "{:?}",
-        iex.chart_with_params(
-            "aapl",
-            Duration::YearToDate,
-            ChartParamsBuilder::default()
-                .chart_simplify(true)
-                .build()
-                .unwrap()
-        ).unwrap()
-    );
+    let client = Client::new();
+    let resp = client.stocks_request("aapl", StocksEndpoint::Book).unwrap();
+    let book = resp.try_into::<Book>();
+    println!("{:?}", &book);
 }
