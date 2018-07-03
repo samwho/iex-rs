@@ -1,11 +1,11 @@
 extern crate iex;
 extern crate serde_json;
-use iex::types::Book;
-use iex::{Client, Request};
+use iex::Book;
+use iex::{Client, StocksEndpoint};
 
 fn main() {
     let client = Client::new();
-    let resp = client.request(&Request::Book { symbol: "aapl" }).unwrap();
+    let resp = client.stocks_request("aapl", StocksEndpoint::Book).unwrap();
     let book = resp.try_into::<Book>();
     println!("{:?}", &book);
 }
