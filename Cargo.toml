@@ -11,3 +11,9 @@ serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 derive_builder = "0.5.1"
+
+[badges]
+appveyor = { repository = "jakeschurch/iex-rs", branch = "master", service = "github" }
+travis-ci = { repository = "samwho/iex-rs", branch = "master" }
+
+maintenance = { status = "actively-developed" }
