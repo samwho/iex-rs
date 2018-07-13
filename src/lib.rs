@@ -4,11 +4,14 @@ extern crate failure;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
+extern crate byteorder;
+extern crate chrono;
 
 use serde_json::Value;
 
 mod endpoints;
 mod types;
+pub mod iextp;
 
 pub use self::endpoints::*;
 pub use self::types::*;
