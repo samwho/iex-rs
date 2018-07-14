@@ -17,3 +17,9 @@ byteorder = "1.2.3"
 
 [dev-dependencies]
 lazy_static = "1.0.1"
+
+[badges]
+appveyor = { repository = "jakeschurch/iex-rs", branch = "master", service = "github" }
+travis-ci = { repository = "samwho/iex-rs", branch = "master" }
+
+maintenance = { status = "actively-developed" }
