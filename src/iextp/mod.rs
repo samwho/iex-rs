@@ -1,22 +1,22 @@
-#![allow(unused_variables, dead_code)]
 use byteorder::{LittleEndian, ReadBytesExt};
 use chrono::{DateTime, NaiveDateTime, Utc};
 use std::io::Cursor;
 
+pub mod deep;
 pub mod tops;
 
-const SEGMENT_HEADER_SIZE: u16 = 40;
+// const SEGMENT_HEADER_SIZE: u16 = 40;
 const UNIX_YEAR: i64 = 1_000_000_000;
 
-#[derive(Deserialize)]
-pub struct HIST {
-    link: String,
-    date: String,
-    feed: String,
-    version: String,
-    protocol: String,
-    size: i64,
-}
+// #[derive(Deserialize)]
+// pub struct HIST {
+//     link: String,
+//     date: String,
+//     feed: String,
+//     version: String,
+//     protocol: String,
+//     size: i64,
+// }
 
 pub trait Unmarshal {
     fn unmarshal(buf: &[u8]) -> Self
@@ -70,7 +70,7 @@ mod test {
 
     struct Mock;
     impl Unmarshal for Mock {
-        fn unmarshal(buf: &[u8]) -> Self {
+        fn unmarshal(_buf: &[u8]) -> Self {
             Mock
         }
     }

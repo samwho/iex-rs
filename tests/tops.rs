@@ -4,7 +4,11 @@ extern crate chrono;
 extern crate iex;
 
 use chrono::{TimeZone, Utc};
-use iex::iextp::tops::{AuctionInformation, SecurityDirectory, LULD, Message, OfficialPrice, OperationalHaltStatus, QuoteUpdate, ShortSalePriceTestStatus, SystemEvent, SystemEventType, TradeBreak, TradeReport, TradingStatus};
+use iex::iextp::tops::{
+    AuctionInformation, Message, OfficialPrice, OperationalHaltStatus, QuoteUpdate,
+    SecurityDirectory, ShortSalePriceTestStatus, SystemEvent, SystemEventType, TradeBreak,
+    TradeReport, TradingStatus, LULD,
+};
 use iex::iextp::Unmarshal;
 
 lazy_static! {

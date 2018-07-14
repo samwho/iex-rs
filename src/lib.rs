@@ -1,23 +1,22 @@
 #[macro_use]
 extern crate serde_derive;
+extern crate byteorder;
+extern crate chrono;
 extern crate failure;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
-extern crate byteorder;
-extern crate chrono;
 
+use failure::Error;
 use serde_json::Value;
+use std::result;
 
 mod endpoints;
-mod types;
 pub mod iextp;
+mod types;
 
 pub use self::endpoints::*;
 pub use self::types::*;
-
-use failure::Error;
-use std::result;
 
 pub type Result<T> = result::Result<T, Error>;
 
